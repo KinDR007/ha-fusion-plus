@@ -9,6 +9,7 @@
 	import Scenes from '$lib/Main/Scenes.svelte';
 	import { handleVisibility, mediaQueries } from '$lib/Conditional';
 	import { generateId } from '$lib/Utils';
+	import { itemSpan } from '$lib/Plus/grid';
 	import { transferLegacyItem, transferLegacySection } from './legacyDrag';
 
 	let { view, altKeyPressed }: { view: any; altKeyPressed: boolean } = $props();
@@ -101,7 +102,8 @@
     `;
 	}
 
-	function itemStyles(type: string) {
+	function itemStyles(item: any) {
+		const type = item?.type;
 		const large = [
 			'conditional_media',
 			'picture_elements',
@@ -109,9 +111,10 @@
 			'spotify_player_large',
 			'entities'
 		];
+		const [columns, rows] = itemSpan(item) ?? (large.includes(type) ? [2, 4] : [1, 1]);
 		return `
-			grid-column: ${large.includes(type) ? 'span 2' : 'span 1'};
-			grid-row: ${large.includes(type) ? 'span 4' : 'span 1'};
+			grid-column: span ${columns};
+			grid-row: span ${rows};
 			display: ${type ? '' : 'none'};
     `;
 	}
@@ -276,7 +279,7 @@
 														data-id={item?.id}
 														class="item"
 														tabindex="-1"
-														style={itemStyles(item?.type)}
+														style={itemStyles(item)}
 													>
 														<Content {item} sectionName={nestedSection?.name} />
 													</div>
@@ -315,12 +318,7 @@
 									use:onDndReceive={(detail) => receiveItem(String(stackSection.id), detail)}
 								>
 									{#each stackSection?.items ?? [] as item (item.id)}
-										<div
-											data-id={item?.id}
-											class="item"
-											tabindex="-1"
-											style={itemStyles(item?.type)}
-										>
+										<div data-id={item?.id} class="item" tabindex="-1" style={itemStyles(item)}>
 											<Content {item} sectionName={stackSection?.name} />
 										</div>
 									{/each}
@@ -398,7 +396,7 @@
 								use:onDndReceive={(detail) => receiveItem(String(stackSection.id), detail)}
 							>
 								{#each stackSection?.items ?? [] as item (item.id)}
-									<div data-id={item?.id} class="item" tabindex="-1" style={itemStyles(item?.type)}>
+									<div data-id={item?.id} class="item" tabindex="-1" style={itemStyles(item)}>
 										<Content {item} sectionName={stackSection?.name} />
 									</div>
 								{/each}
@@ -471,7 +469,7 @@
 					use:onDndReceive={(detail) => receiveItem(String(section.id), detail)}
 				>
 					{#each section?.items ?? [] as item (item.id)}
-						<div data-id={item?.id} class="item" tabindex="-1" style={itemStyles(item?.type)}>
+						<div data-id={item?.id} class="item" tabindex="-1" style={itemStyles(item)}>
 							<Content {item} sectionName={section?.name} />
 						</div>
 					{/each}

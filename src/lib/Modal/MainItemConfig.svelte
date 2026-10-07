@@ -24,6 +24,7 @@
 	import DaysSince from '$lib/Main/DaysSince.svelte';
 	import SpotifyPlayer from '$lib/Main/SpotifyPlayer.svelte';
 	import TempHumiButton from '$lib/Plus/TempHumiButton.svelte';
+	import FlexGrid from '$lib/Plus/FlexGrid.svelte';
 	import { demoEntity } from '$lib/Plus/entities';
 
 	let { isOpen, sel }: { isOpen: boolean; sel: any } = $props();
@@ -40,6 +41,10 @@
 	if (!$demo.camera) $demo.camera = getCameraEntity($states);
 	if (!$demo.sensor) $demo.sensor = getSensorEntity($states);
 	const demoTemperature = demoEntity($states, 'temperature');
+	const demoCells = Object.keys($states ?? {})
+		.filter((id) => /^(light|switch)\./.test(id))
+		.sort()
+		.slice(0, 4);
 	if (!$demo.media_player) $demo.media_player = getMediaPlayerEntity($states);
 
 	let loadIcons: (typeof import('@iconify/svelte'))['loadIcons'];
@@ -94,6 +99,15 @@
 			component: TempHumiButton,
 			props: {
 				demo: demoTemperature,
+				sel: selected
+			}
+		},
+		{
+			id: 'flex_grid',
+			type: $lang('plus_flex_grid'),
+			component: FlexGrid,
+			props: {
+				demo: demoCells,
 				sel: selected
 			}
 		},
@@ -202,6 +216,11 @@
 			case 'temp_humi_button':
 				openModal(() => import('$lib/Plus/TempHumiConfig.svelte'), {
 					demo: demoTemperature,
+					sel: selected
+				});
+				break;
+			case 'flex_grid':
+				openModal(() => import('$lib/Plus/FlexGridConfig.svelte'), {
 					sel: selected
 				});
 				break;

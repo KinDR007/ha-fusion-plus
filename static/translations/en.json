@@ -451,5 +451,13 @@
 	"plus_temperature": "Temperature",
 	"plus_humidity": "Humidity",
 	"plus_no_history": "No history",
-	"plus_device": "Device"
+	"plus_device": "Device",
+	"plus_flex_grid": "Grid",
+	"plus_cell": "Cell",
+	"plus_cells": "Cells",
+	"plus_no_cells": "No cells yet",
+	"plus_grid_width": "Width",
+	"plus_grid_height": "Height",
+	"plus_grid_columns": "Columns",
+	"plus_font_size": "Font size"
 }

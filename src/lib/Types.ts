@@ -121,6 +121,19 @@ export interface TempHumiItem extends ButtonItem {
 	humidity_entity?: string;
 }
 
+export interface FlexGridItem {
+	type: 'flex_grid';
+	id: number;
+	name?: string;
+	icon?: string;
+	span_cols?: number;
+	span_rows?: number;
+	columns?: number;
+	font_scale?: number;
+	/** cells are Button configurations, edited with ButtonConfig */
+	cells?: (Partial<ButtonItem> & { id: number; font_scale?: number })[];
+}
+
 export interface DaysSinceItem {
 	type: string;
 	id: number;

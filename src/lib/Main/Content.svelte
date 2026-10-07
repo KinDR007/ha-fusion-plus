@@ -9,6 +9,7 @@
 	import Entities from '$lib/Main/Entities.svelte';
 	import SpotifyPlayer from '$lib/Main/SpotifyPlayer.svelte';
 	import TempHumiButton from '$lib/Plus/TempHumiButton.svelte';
+	import FlexGrid from '$lib/Plus/FlexGrid.svelte';
 
 	let { item, sectionName = undefined }: { item: any; sectionName?: string } = $props();
 </script>
@@ -19,6 +20,8 @@
 	<Button sel={item} {sectionName} />
 {:else if item?.type === 'temp_humi_button'}
 	<TempHumiButton sel={item} {sectionName} />
+{:else if item?.type === 'flex_grid'}
+	<FlexGrid sel={item} {sectionName} />
 {:else if item?.type === 'days_since'}
 	<DaysSince sel={item} {sectionName} />
 {:else if item?.type === 'entities'}
