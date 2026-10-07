@@ -121,6 +121,20 @@ export interface TempHumiItem extends ButtonItem {
 	humidity_entity?: string;
 }
 
+export interface PowerItem extends ButtonItem {
+	power_sensor?: string;
+	energy_sensor?: string;
+	/** watts above which a meter counts as on, default 1 */
+	on_threshold?: number;
+}
+
+export interface MetricItem extends ButtonItem {
+	secondary_1?: string;
+	secondary_1_label?: string;
+	secondary_2?: string;
+	secondary_2_label?: string;
+}
+
 export interface FlexGridItem {
 	type: 'flex_grid';
 	id: number;

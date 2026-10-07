@@ -3,6 +3,8 @@
 	import Modal from '$lib/Modal/Index.svelte';
 	import ConfigButtons from '$lib/Modal/ConfigButtons.svelte';
 	import ComputeIcon from '$lib/Components/ComputeIcon.svelte';
+	import Toggle from '$lib/Components/Toggle.svelte';
+	import { callService } from 'home-assistant-js-websocket';
 	import Ripple from '$lib/Actions/ripple';
 	import HistoryChart from '$lib/Plus/HistoryChart.svelte';
 	import { fetchSeries, type Point, type Series } from '$lib/Plus/history';
@@ -13,11 +15,15 @@
 	let {
 		isOpen,
 		sel,
-		entity_ids
+		entity_ids,
+		toggle_entity = undefined
 	}: {
 		isOpen: boolean;
 		sel: any;
+		/** charted entities */
 		entity_ids: string[];
+		/** switch-like entity shown with a toggle above the charts */
+		toggle_entity?: string | undefined;
 	} = $props();
 
 	const periods = [
@@ -32,8 +38,10 @@
 	let hovered = $state<Record<string, Point | undefined>>({});
 	let request = 0;
 
-	let main = $derived($states?.[entity_ids[0]]);
+	let primary = $derived(toggle_entity ?? entity_ids[0]);
+	let main = $derived($states?.[primary]);
 	let base = $derived(baseName(main));
+	let toggleOn = $derived($states?.[toggle_entity ?? '']?.state === 'on');
 
 	// depends on the ids, the period and the connection only, never on $states,
 	// so state changes elsewhere in Home Assistant don't trigger new queries
@@ -59,7 +67,7 @@
 	});
 
 	let related = $derived(
-		deviceSiblings(entity_ids[0], $entityDevices).filter(
+		deviceSiblings(primary, $entityDevices).filter(
 			(id) =>
 				!entity_ids.includes(id) &&
 				$states?.[id] &&
@@ -69,7 +77,9 @@
 
 	function label(entity_id: string) {
 		const cls = deviceClass($states?.[entity_id]);
-		if (cls === 'temperature' || cls === 'humidity') return $lang(`plus_${cls}`);
+		if (['temperature', 'humidity', 'power', 'energy'].includes(cls ?? '')) {
+			return $lang(`plus_${cls}`);
+		}
 		return getName(undefined, $states?.[entity_id]) ?? entity_id;
 	}
 
@@ -98,39 +108,51 @@
 	<Modal>
 		{#snippet title()}<h1>{getName(sel, main)}</h1>{/snippet}
 
-		<h2>{$lang('period')}</h2>
+		{#if toggle_entity}
+			<h2>{$lang('toggle')}</h2>
 
-		<div class="button-container">
-			{#each periods as period (period.hours)}
-				<button
-					class:selected={hours === period.hours}
-					onclick={() => (hours = period.hours)}
-					use:Ripple={$ripple}
-				>
-					{$lang(period.label)}
-				</button>
+			<Toggle
+				checked={toggleOn}
+				onchange={() =>
+					callService($connection, 'homeassistant', 'toggle', { entity_id: toggle_entity })}
+			/>
+		{/if}
+
+		{#if entity_ids.length}
+			<h2>{$lang('period')}</h2>
+
+			<div class="button-container">
+				{#each periods as period (period.hours)}
+					<button
+						class:selected={hours === period.hours}
+						onclick={() => (hours = period.hours)}
+						use:Ripple={$ripple}
+					>
+						{$lang(period.label)}
+					</button>
+				{/each}
+			</div>
+
+			{#each entity_ids as entity_id (entity_id)}
+				<h2>
+					{label(entity_id)}
+					<span class="align-right">
+						{hovered[entity_id]
+							? hoverText(entity_id, hovered[entity_id] as Point)
+							: formatState($states?.[entity_id], $lang)}
+					</span>
+				</h2>
+
+				{#if series[entity_id]}
+					<HistoryChart
+						points={series[entity_id]}
+						onhover={(point) => (hovered = { ...hovered, [entity_id]: point })}
+					/>
+				{:else}
+					<div class="empty">{loading ? $lang('loading') : $lang('plus_no_history')}</div>
+				{/if}
 			{/each}
-		</div>
-
-		{#each entity_ids as entity_id (entity_id)}
-			<h2>
-				{label(entity_id)}
-				<span class="align-right">
-					{hovered[entity_id]
-						? hoverText(entity_id, hovered[entity_id] as Point)
-						: formatState($states?.[entity_id], $lang)}
-				</span>
-			</h2>
-
-			{#if series[entity_id]}
-				<HistoryChart
-					points={series[entity_id]}
-					onhover={(point) => (hovered = { ...hovered, [entity_id]: point })}
-				/>
-			{:else}
-				<div class="empty">{loading ? $lang('loading') : $lang('plus_no_history')}</div>
-			{/if}
-		{/each}
+		{/if}
 
 		{#if related.length}
 			<h2>{$lang('plus_device')}</h2>

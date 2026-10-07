@@ -459,5 +459,14 @@
 	"plus_grid_width": "Width",
 	"plus_grid_height": "Height",
 	"plus_grid_columns": "Columns",
-	"plus_font_size": "Font size"
+	"plus_font_size": "Font size",
+	"plus_power": "Power",
+	"plus_energy": "Energy",
+	"plus_power_button": "Power button",
+	"plus_power_sensor": "Power sensor",
+	"plus_energy_sensor": "Energy sensor",
+	"plus_on_threshold": "On above (W)",
+	"plus_metric_button": "Metric button",
+	"plus_secondary": "Secondary value",
+	"plus_label": "Label"
 }

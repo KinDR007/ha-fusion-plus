@@ -406,5 +406,14 @@
 	"plus_grid_width": "\u0160\u00ed\u0159ka",
 	"plus_grid_height": "V\u00fd\u0161ka",
 	"plus_grid_columns": "Sloupce",
-	"plus_font_size": "Velikost p\u00edsma"
+	"plus_font_size": "Velikost p\u00edsma",
+	"plus_power": "V\u00fdkon",
+	"plus_energy": "Energie",
+	"plus_power_button": "Spot\u0159ebi\u010d",
+	"plus_power_sensor": "Senzor v\u00fdkonu",
+	"plus_energy_sensor": "Senzor energie",
+	"plus_on_threshold": "Zapnuto nad (W)",
+	"plus_metric_button": "M\u011b\u0159en\u00ed",
+	"plus_secondary": "Vedlej\u0161\u00ed hodnota",
+	"plus_label": "Popisek"
 }

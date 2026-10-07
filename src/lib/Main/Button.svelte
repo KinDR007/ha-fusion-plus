@@ -32,6 +32,7 @@
 		sectionName = undefined,
 		displayOnly = false,
 		compact = false,
+		stateOnOverride = undefined,
 		openConfig = undefined,
 		openDetails = undefined
 	}: {
@@ -41,6 +42,8 @@
 		displayOnly?: boolean;
 		/** smaller variant used for cells inside grid items */
 		compact?: boolean;
+		/** on/off decided by the item type, e.g. a power meter above its threshold */
+		stateOnOverride?: boolean;
 		/** replaces ButtonConfig in edit mode, used by item types built on Button */
 		openConfig?: () => void;
 		/** replaces the domain modal when more_info is enabled */
@@ -144,6 +147,8 @@
 		if (optimisticStateOn !== null) {
 			// Use optimistic state if available
 			stateOn = optimisticStateOn;
+		} else if (stateOnOverride !== undefined) {
+			stateOn = stateOnOverride;
 		} else if (sel?.template?.set_state && template?.set_state?.output) {
 			// template
 			stateOn = $onStates?.includes(template?.set_state?.output?.toLocaleLowerCase());

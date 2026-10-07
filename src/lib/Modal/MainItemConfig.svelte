@@ -25,6 +25,9 @@
 	import SpotifyPlayer from '$lib/Main/SpotifyPlayer.svelte';
 	import TempHumiButton from '$lib/Plus/TempHumiButton.svelte';
 	import FlexGrid from '$lib/Plus/FlexGrid.svelte';
+	import PowerButton from '$lib/Plus/PowerButton.svelte';
+	import MetricButton from '$lib/Plus/MetricButton.svelte';
+	import { isPowerSensor } from '$lib/Plus/power';
 	import { demoEntity } from '$lib/Plus/entities';
 
 	let { isOpen, sel }: { isOpen: boolean; sel: any } = $props();
@@ -41,6 +44,9 @@
 	if (!$demo.camera) $demo.camera = getCameraEntity($states);
 	if (!$demo.sensor) $demo.sensor = getSensorEntity($states);
 	const demoTemperature = demoEntity($states, 'temperature');
+	const demoPower = Object.keys($states ?? {})
+		.filter((id) => isPowerSensor($states?.[id]))
+		.sort()[0];
 	const demoCells = Object.keys($states ?? {})
 		.filter((id) => /^(light|switch)\./.test(id))
 		.sort()
@@ -99,6 +105,24 @@
 			component: TempHumiButton,
 			props: {
 				demo: demoTemperature,
+				sel: selected
+			}
+		},
+		{
+			id: 'power_button',
+			type: $lang('plus_power_button'),
+			component: PowerButton,
+			props: {
+				demo: demoPower,
+				sel: selected
+			}
+		},
+		{
+			id: 'metric_button',
+			type: $lang('plus_metric_button'),
+			component: MetricButton,
+			props: {
+				demo: $demo.sensor,
 				sel: selected
 			}
 		},
@@ -219,6 +243,18 @@
 					sel: selected
 				});
 				break;
+			case 'power_button':
+				openModal(() => import('$lib/Plus/PowerConfig.svelte'), {
+					demo: demoPower,
+					sel: selected
+				});
+				break;
+			case 'metric_button':
+				openModal(() => import('$lib/Plus/MetricConfig.svelte'), {
+					demo: $demo.sensor,
+					sel: selected
+				});
+				break;
 			case 'flex_grid':
 				openModal(() => import('$lib/Plus/FlexGridConfig.svelte'), {
 					sel: selected
@@ -331,7 +367,9 @@
 					<div
 						class="preview"
 						class:camera={id === 'camera'}
-						class:button={id === 'button' || id === 'temp_humi_button'}
+						class:button={['button', 'temp_humi_button', 'power_button', 'metric_button'].includes(
+							id
+						)}
 					>
 						<Component {...props} />
 					</div>
