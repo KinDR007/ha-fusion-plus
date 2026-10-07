@@ -51,7 +51,9 @@
 	let computedIcon = $state<string>();
 	// Reflect the effective runtime value, not just the explicit setting,
 	// so the Yes/No selection matches how the button actually behaves
-	let displayOnly = $state(sel?.displayOnly ?? isDisplayOnlyDomain(sel?.entity_id));
+	// a new item gets its demo entity from ConfigModal after this runs, so fall back to `demo`
+	// svelte-ignore state_referenced_locally
+	let displayOnly = $state(sel?.displayOnly ?? isDisplayOnlyDomain(sel?.entity_id ?? demo));
 	let slideBrightness = $state(sel?.slide_brightness !== false);
 	let sliderUpdates = $state(sel?.slider_updates === 'release' ? 'release' : 'continuous');
 
