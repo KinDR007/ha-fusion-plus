@@ -23,6 +23,8 @@
 	import PictureElements from '$lib/Main/PictureElements.svelte';
 	import DaysSince from '$lib/Main/DaysSince.svelte';
 	import SpotifyPlayer from '$lib/Main/SpotifyPlayer.svelte';
+	import TempHumiButton from '$lib/Plus/TempHumiButton.svelte';
+	import { demoEntity } from '$lib/Plus/entities';
 
 	let { isOpen, sel }: { isOpen: boolean; sel: any } = $props();
 
@@ -37,6 +39,7 @@
 	// get random preview entities
 	if (!$demo.camera) $demo.camera = getCameraEntity($states);
 	if (!$demo.sensor) $demo.sensor = getSensorEntity($states);
+	const demoTemperature = demoEntity($states, 'temperature');
 	if (!$demo.media_player) $demo.media_player = getMediaPlayerEntity($states);
 
 	let loadIcons: (typeof import('@iconify/svelte'))['loadIcons'];
@@ -82,6 +85,15 @@
 			component: Button,
 			props: {
 				demo: $demo.sensor,
+				sel: selected
+			}
+		},
+		{
+			id: 'temp_humi_button',
+			type: $lang('plus_temp_humi_button'),
+			component: TempHumiButton,
+			props: {
+				demo: demoTemperature,
 				sel: selected
 			}
 		},
@@ -184,6 +196,12 @@
 			case 'button':
 				openModal(() => import('$lib/Modal/ButtonConfig.svelte'), {
 					demo: $demo.sensor,
+					sel: selected
+				});
+				break;
+			case 'temp_humi_button':
+				openModal(() => import('$lib/Plus/TempHumiConfig.svelte'), {
+					demo: demoTemperature,
 					sel: selected
 				});
 				break;
@@ -291,7 +309,11 @@
 						{type}
 					</div>
 
-					<div class="preview" class:camera={id === 'camera'} class:button={id === 'button'}>
+					<div
+						class="preview"
+						class:camera={id === 'camera'}
+						class:button={id === 'button' || id === 'temp_humi_button'}
+					>
 						<Component {...props} />
 					</div>
 				</button>

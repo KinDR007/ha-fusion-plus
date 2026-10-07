@@ -445,5 +445,11 @@
 	"welcome_home": "Welcome Home",
 	"year": "year",
 	"wildcard": "Wildcard",
-	"yes": "Yes"
+	"yes": "Yes",
+	"plus_temp_humi_button": "Temperature and humidity",
+	"plus_humidity_entity": "Humidity entity",
+	"plus_temperature": "Temperature",
+	"plus_humidity": "Humidity",
+	"plus_no_history": "No history",
+	"plus_device": "Device"
 }

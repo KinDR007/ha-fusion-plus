@@ -117,6 +117,10 @@ export interface ButtonItem {
 	vacuum_mop_intensity_entity?: string;
 }
 
+export interface TempHumiItem extends ButtonItem {
+	humidity_entity?: string;
+}
+
 export interface DaysSinceItem {
 	type: string;
 	id: number;

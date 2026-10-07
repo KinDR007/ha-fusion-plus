@@ -392,5 +392,11 @@
 	"week": "T\u00fdden",
 	"welcome_home": "V\u00edtejte doma",
 	"year": "rok",
-	"yes": "Ano"
+	"yes": "Ano",
+	"plus_temp_humi_button": "Teplota a vlhkost",
+	"plus_humidity_entity": "Entita vlhkosti",
+	"plus_temperature": "Teplota",
+	"plus_humidity": "Vlhkost",
+	"plus_no_history": "Bez historie",
+	"plus_device": "Za\u0159\u00edzen\u00ed"
 }
