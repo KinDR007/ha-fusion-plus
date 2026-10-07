@@ -12,12 +12,12 @@ ha-fusion was created by [matt8707](https://github.com/matt8707). This repositor
 
 This fork of [knowald/ha-fusion](https://github.com/knowald/ha-fusion) adds item types on top of the regular button, so they follow the theme, the display-only style, templates and the phone layout:
 
-| Type               | Shows                                                                                                                                                 |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `temp_humi_button` | temperature and the humidity of the same device, `humidity_entity` overrides the pairing                                                              |
+| Type               | Shows                                                                                                                                                                   |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `temp_humi_button` | temperature and the humidity of the same device, `humidity_entity` overrides the pairing                                                                                |
 | `power_button`     | a switch with its measured power, or a power meter when the entity is a sensor (`on_threshold` watts, default 1); `power_sensor` and `energy_sensor` override detection |
-| `metric_button`    | a value with up to two secondary values (`secondary_1`, `secondary_1_label`, …), e.g. inverter or battery readings                                   |
-| `flex_grid`        | a card of compact buttons (`cells`), sized with `span_cols`, `span_rows` and `columns`; every cell is edited like a button, templates included        |
+| `metric_button`    | a value with up to two secondary values (`secondary_1`, `secondary_1_label`, …), e.g. inverter or battery readings                                                      |
+| `flex_grid`        | a card of compact buttons (`cells`), sized with `span_cols`, `span_rows` and `columns`; every cell is edited like a button, templates included                          |
 
 The three buttons open a history modal (statistics, or recorder history for sensors without a `state_class`), with a toggle for switches.
 
