@@ -36,7 +36,14 @@
 	}
 </script>
 
-<ButtonConfig {isOpen} bind:sel {demo} {sectionName} title={$lang('plus_power_button')}>
+<ButtonConfig
+	{isOpen}
+	bind:sel
+	{demo}
+	{sectionName}
+	displayOnlyDefault={false}
+	title={$lang('plus_power_button')}
+>
 	{#snippet preview(displayOnly)}
 		<PowerButton {sel} {sectionName} {displayOnly} />
 	{/snippet}

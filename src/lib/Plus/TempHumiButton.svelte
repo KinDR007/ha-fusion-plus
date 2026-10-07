@@ -27,9 +27,11 @@
 
 	// Button renders `sel.state` before a state template, so the generated
 	// line is only used when neither is configured
+	// these tiles open a history modal, so unlike plain sensor buttons they are interactive by default
 	let view = $derived({
 		...sel,
 		entity_id,
+		displayOnly: sel?.displayOnly ?? false,
 		name: sel?.name ?? baseName($states?.[entity_id as string]),
 		state: sel?.state ?? (sel?.template?.state || !line ? undefined : escapeHtml(line))
 	});

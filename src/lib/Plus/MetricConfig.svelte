@@ -36,7 +36,14 @@
 	});
 </script>
 
-<ButtonConfig {isOpen} bind:sel {demo} {sectionName} title={$lang('plus_metric_button')}>
+<ButtonConfig
+	{isOpen}
+	bind:sel
+	{demo}
+	{sectionName}
+	displayOnlyDefault={false}
+	title={$lang('plus_metric_button')}
+>
 	{#snippet preview(displayOnly)}
 		<MetricButton {sel} {sectionName} {displayOnly} />
 	{/snippet}

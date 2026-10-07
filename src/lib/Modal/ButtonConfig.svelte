@@ -27,6 +27,7 @@
 		entityFilter = undefined,
 		namePlaceholder = undefined,
 		statePlaceholder = undefined,
+		displayOnlyDefault = undefined,
 		preview = undefined,
 		extra = undefined
 	}: {
@@ -39,6 +40,8 @@
 		entityFilter?: (entity_id: string) => boolean;
 		namePlaceholder?: string;
 		statePlaceholder?: string;
+		/** display-only when unset, instead of deciding by the entity domain */
+		displayOnlyDefault?: boolean;
 		preview?: Snippet<[boolean]>;
 		extra?: Snippet<[(key: string, event?: any) => void]>;
 	} = $props();
@@ -53,7 +56,9 @@
 	// so the Yes/No selection matches how the button actually behaves
 	// a new item gets its demo entity from ConfigModal after this runs, so fall back to `demo`
 	// svelte-ignore state_referenced_locally
-	let displayOnly = $state(sel?.displayOnly ?? isDisplayOnlyDomain(sel?.entity_id ?? demo));
+	let displayOnly = $state(
+		sel?.displayOnly ?? displayOnlyDefault ?? isDisplayOnlyDomain(sel?.entity_id ?? demo)
+	);
 	let slideBrightness = $state(sel?.slide_brightness !== false);
 	let sliderUpdates = $state(sel?.slider_updates === 'release' ? 'release' : 'continuous');
 
@@ -89,7 +94,9 @@
 		}
 	}
 
-	let suggestDisplayOnly = $derived(isDisplayOnlyDomain(entity_id));
+	let suggestDisplayOnly = $derived(
+		displayOnlyDefault === undefined && isDisplayOnlyDomain(entity_id)
+	);
 	let isLightEntity = $derived(getDomain(entity_id) === 'light');
 	let isCoverEntity = $derived(getDomain(entity_id) === 'cover');
 	let isVacuumEntity = $derived(getDomain(entity_id) === 'vacuum');
@@ -158,7 +165,7 @@
 						if (event === null) return;
 						set('entity_id', event);
 						// Re-sync display-only with the new entity's default
-						displayOnly = isDisplayOnlyDomain(event);
+						displayOnly = displayOnlyDefault ?? isDisplayOnlyDomain(event);
 						set('displayOnly');
 					}}
 					computeIcons={true}

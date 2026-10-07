@@ -34,6 +34,7 @@
 	bind:sel
 	{demo}
 	{sectionName}
+	displayOnlyDefault={false}
 	title={$lang('plus_temp_humi_button')}
 	entityFilter={(id) => isSensorOfClass(id, $states, 'temperature')}
 	namePlaceholder={baseName($states?.[sel?.entity_id])}

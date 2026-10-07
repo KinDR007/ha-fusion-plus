@@ -37,9 +37,11 @@
 		].join(' · ');
 	});
 
+	// these tiles open a history modal, so unlike plain sensor buttons they are interactive by default
 	let view = $derived({
 		...sel,
 		entity_id,
+		displayOnly: sel?.displayOnly ?? false,
 		state: sel?.state ?? (sel?.template?.state || !line ? undefined : escapeHtml(line))
 	});
 
