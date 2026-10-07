@@ -3,6 +3,8 @@ import { dev } from '$app/environment';
 import * as yaml from 'js-yaml';
 import type { Configuration, Dashboard, Translations } from '$lib/Types';
 import dotenv from 'dotenv';
+import { migrateDashboard, needsMigration } from '$lib/Plus/migrate';
+import { tokenAllowed } from '$lib/Plus/token';
 
 dotenv.config();
 
@@ -30,20 +32,36 @@ async function loadFile(file: string) {
 /**
  * Server load function
  */
-export async function load({ request }): Promise<{
+export async function load({ request, getClientAddress }): Promise<{
 	configuration: Configuration;
 	dashboard: Dashboard;
 	theme: any;
 	translations: Translations;
 }> {
 	// must be loaded first
-	const [configuration, dashboard] = await Promise.all([
+	const [configuration, loadedDashboard] = await Promise.all([
 		loadFile('./data/configuration.yaml'),
 		loadFile('./data/dashboard.yaml')
 	]);
 
+	// item types of the Svelte 4 fork are converted in memory, the file
+	// itself only changes when the dashboard is saved
+	let dashboard = loadedDashboard;
+	if (needsMigration(loadedDashboard)) {
+		const migration = migrateDashboard(loadedDashboard);
+		dashboard = migration.dashboard;
+		console.log(`dashboard.yaml: migrated ${migration.changes.join(', ')}`);
+	}
+
 	// hassUrl from env or server.js
 	configuration.hassUrl = process.env.HASS_URL || request.headers.get('X-Proxy-Target');
+
+	// The page data is readable by anyone who can reach the port. As an add-on,
+	// only hand the long-lived token to Ingress requests, which Home Assistant
+	// already authenticated; an exposed add-on port uses the normal login.
+	if (!tokenAllowed(process.env.ADDON === 'true', request.headers, getClientAddress())) {
+		delete configuration.token;
+	}
 
 	// initialize keys if missing
 	dashboard.views = dashboard.views || [];

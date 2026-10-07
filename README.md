@@ -8,6 +8,25 @@ Built with SvelteKit and Svelte 5. Connects to Home Assistant over WebSocket for
 
 ha-fusion was created by [matt8707](https://github.com/matt8707). This repository is the maintained continuation of the [original project](https://github.com/matt8707/ha-fusion); see [Credits](#credits).
 
+## Fusion+ additions
+
+This fork of [knowald/ha-fusion](https://github.com/knowald/ha-fusion) adds item types on top of the regular button, so they follow the theme, the display-only style, templates and the phone layout:
+
+| Type               | Shows                                                                                                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `temp_humi_button` | temperature and the humidity of the same device, `humidity_entity` overrides the pairing                                                              |
+| `power_button`     | a switch with its measured power, or a power meter when the entity is a sensor (`on_threshold` watts, default 1); `power_sensor` and `energy_sensor` override detection |
+| `metric_button`    | a value with up to two secondary values (`secondary_1`, `secondary_1_label`, …), e.g. inverter or battery readings                                   |
+| `flex_grid`        | a card of compact buttons (`cells`), sized with `span_cols`, `span_rows` and `columns`; every cell is edited like a button, templates included        |
+
+The three buttons open a history modal (statistics, or recorder history for sensors without a `state_class`), with a toggle for switches.
+
+Dashboards from the Svelte 4 fork [KinDR007/ha-fusion](https://github.com/KinDR007/ha-fusion) are converted when they load (`grid_button` and `info_grid` become `flex_grid`, `victron_button` becomes `metric_button`); the file changes on the next save. To convert the file directly, with a backup: `node scripts/migrate/fusion-plus.mjs data/dashboard.yaml [--dry-run]`.
+
+As an add-on, the long-lived token from `configuration.yaml` is only sent to Ingress requests; an exposed add-on port uses the regular Home Assistant login.
+
+The fork's code lives in `src/lib/Plus/`; changes to upstream files are kept small to ease merging from knowald.
+
 ## Features
 
 - Drag-and-drop editor for views, sections and sidebar, saved to plain YAML

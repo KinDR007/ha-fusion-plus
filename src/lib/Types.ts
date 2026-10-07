@@ -117,6 +117,37 @@ export interface ButtonItem {
 	vacuum_mop_intensity_entity?: string;
 }
 
+export interface TempHumiItem extends ButtonItem {
+	humidity_entity?: string;
+}
+
+export interface PowerItem extends ButtonItem {
+	power_sensor?: string;
+	energy_sensor?: string;
+	/** watts above which a meter counts as on, default 1 */
+	on_threshold?: number;
+}
+
+export interface MetricItem extends ButtonItem {
+	secondary_1?: string;
+	secondary_1_label?: string;
+	secondary_2?: string;
+	secondary_2_label?: string;
+}
+
+export interface FlexGridItem {
+	type: 'flex_grid';
+	id: number;
+	name?: string;
+	icon?: string;
+	span_cols?: number;
+	span_rows?: number;
+	columns?: number;
+	font_scale?: number;
+	/** cells are Button configurations, edited with ButtonConfig */
+	cells?: (Partial<ButtonItem> & { id: number; font_scale?: number })[];
+}
+
 export interface DaysSinceItem {
 	type: string;
 	id: number;

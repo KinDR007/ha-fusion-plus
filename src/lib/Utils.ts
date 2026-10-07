@@ -47,6 +47,9 @@ function findInSections(sections: Section[], id: number | undefined): any {
 		if (section.items) {
 			for (const item of section.items) {
 				if (item.id === id) return item;
+				// grid items keep their cells nested
+				const cell = (item as any).cells?.find?.((cell: any) => cell?.id === id);
+				if (cell) return cell;
 			}
 		}
 		if (

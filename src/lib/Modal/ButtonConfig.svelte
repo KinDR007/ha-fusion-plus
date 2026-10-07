@@ -16,17 +16,34 @@
 	import type { ButtonItem } from '$lib/Types';
 	import { openModal } from '$lib/Modals';
 	import * as parser from 'js-yaml';
+	import type { Snippet } from 'svelte';
 
 	let {
 		isOpen,
 		sel = $bindable(),
 		demo = undefined,
-		sectionName = undefined
+		sectionName = undefined,
+		title = undefined,
+		entityFilter = undefined,
+		namePlaceholder = undefined,
+		statePlaceholder = undefined,
+		displayOnlyDefault = undefined,
+		preview = undefined,
+		extra = undefined
 	}: {
 		isOpen: boolean;
 		sel: ButtonItem;
 		demo?: string | undefined;
 		sectionName?: string | undefined;
+		/** the props below let item types built on Button reuse this editor */
+		title?: string;
+		entityFilter?: (entity_id: string) => boolean;
+		namePlaceholder?: string;
+		statePlaceholder?: string;
+		/** display-only when unset, instead of deciding by the entity domain */
+		displayOnlyDefault?: boolean;
+		preview?: Snippet<[boolean]>;
+		extra?: Snippet<[(key: string, event?: any) => void]>;
 	} = $props();
 
 	let entity_id = $derived(sel?.entity_id);
@@ -37,11 +54,17 @@
 	let computedIcon = $state<string>();
 	// Reflect the effective runtime value, not just the explicit setting,
 	// so the Yes/No selection matches how the button actually behaves
-	let displayOnly = $state(sel?.displayOnly ?? isDisplayOnlyDomain(sel?.entity_id));
+	// a new item gets its demo entity from ConfigModal after this runs, so fall back to `demo`
+	// svelte-ignore state_referenced_locally
+	let displayOnly = $state(
+		sel?.displayOnly ?? displayOnlyDefault ?? isDisplayOnlyDomain(sel?.entity_id ?? demo)
+	);
 	let slideBrightness = $state(sel?.slide_brightness !== false);
 	let sliderUpdates = $state(sel?.slider_updates === 'release' ? 'release' : 'continuous');
 
-	let options = $derived($entityList(''));
+	let options = $derived(
+		entityFilter ? $entityList('').filter((option) => entityFilter(option.id)) : $entityList('')
+	);
 
 	let template = $derived($templates?.[sel?.id]);
 
@@ -71,7 +94,9 @@
 		}
 	}
 
-	let suggestDisplayOnly = $derived(isDisplayOnlyDomain(entity_id));
+	let suggestDisplayOnly = $derived(
+		displayOnlyDefault === undefined && isDisplayOnlyDomain(entity_id)
+	);
 	let isLightEntity = $derived(getDomain(entity_id) === 'light');
 	let isCoverEntity = $derived(getDomain(entity_id) === 'cover');
 	let isVacuumEntity = $derived(getDomain(entity_id) === 'vacuum');
@@ -116,12 +141,16 @@
 	}
 </script>
 
-<ConfigModal {isOpen} bind:sel title={$lang('button')} {demo}>
+<ConfigModal {isOpen} bind:sel title={title ?? $lang('button')} {demo}>
 	{#snippet children(set)}
 		<h2>{$lang('preview')}</h2>
 
 		<div style:pointer-events="none">
-			<Button {sel} {sectionName} {displayOnly} />
+			{#if preview}
+				{@render preview(displayOnly)}
+			{:else}
+				<Button {sel} {sectionName} {displayOnly} />
+			{/if}
 		</div>
 
 		<h2>{$lang('entity')}</h2>
@@ -136,7 +165,7 @@
 						if (event === null) return;
 						set('entity_id', event);
 						// Re-sync display-only with the new entity's default
-						displayOnly = isDisplayOnlyDomain(event);
+						displayOnly = displayOnlyDefault ?? isDisplayOnlyDomain(event);
 						set('displayOnly');
 					}}
 					computeIcons={true}
@@ -165,6 +194,8 @@
 			</button>
 		</div>
 
+		{@render extra?.(set)}
+
 		<h2>{$lang('name')}</h2>
 
 		<div class="icon-gallery-container">
@@ -181,6 +212,7 @@
 						class="input"
 						type="text"
 						placeholder={template?.name?.output ||
+							namePlaceholder ||
 							getName(sel, (entity_id && $states?.[entity_id]) || undefined) ||
 							$lang('name')}
 						autocomplete="off"
@@ -228,6 +260,7 @@
 						class="input"
 						type="text"
 						placeholder={template?.state?.output ||
+							statePlaceholder ||
 							(entity_id && $states?.[entity_id]?.state) ||
 							$lang('state')}
 						autocomplete="off"
