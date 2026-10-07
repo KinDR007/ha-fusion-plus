@@ -30,12 +30,18 @@
 		demo = undefined,
 		sel,
 		sectionName = undefined,
-		displayOnly = false
+		displayOnly = false,
+		openConfig = undefined,
+		openDetails = undefined
 	}: {
 		demo?: string | undefined;
 		sel: any;
 		sectionName?: string | undefined;
 		displayOnly?: boolean;
+		/** replaces ButtonConfig in edit mode, used by item types built on Button */
+		openConfig?: () => void;
+		/** replaces the domain modal when more_info is enabled */
+		openDetails?: () => void;
 	} = $props();
 
 	let entity_id = $derived(demo || sel?.entity_id);
@@ -284,7 +290,9 @@
 	 * Opens modal for specified domain
 	 */
 	async function handleClickEvent() {
-		if ($editMode) {
+		if ($editMode && openConfig) {
+			openConfig();
+		} else if ($editMode) {
 			openModal(() => import('$lib/Modal/ButtonConfig.svelte'), {
 				demo: entity_id,
 				sel,
@@ -301,6 +309,11 @@
 	 * Opens modal for specified domain
 	 */
 	async function openEntityModal() {
+		if (openDetails) {
+			openDetails();
+			return;
+		}
+
 		switch (getDomain(sel?.entity_id)) {
 			// light
 			case 'light':

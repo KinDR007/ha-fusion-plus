@@ -16,17 +16,31 @@
 	import type { ButtonItem } from '$lib/Types';
 	import { openModal } from '$lib/Modals';
 	import * as parser from 'js-yaml';
+	import type { Snippet } from 'svelte';
 
 	let {
 		isOpen,
 		sel = $bindable(),
 		demo = undefined,
-		sectionName = undefined
+		sectionName = undefined,
+		title = undefined,
+		entityFilter = undefined,
+		namePlaceholder = undefined,
+		statePlaceholder = undefined,
+		preview = undefined,
+		extra = undefined
 	}: {
 		isOpen: boolean;
 		sel: ButtonItem;
 		demo?: string | undefined;
 		sectionName?: string | undefined;
+		/** the props below let item types built on Button reuse this editor */
+		title?: string;
+		entityFilter?: (entity_id: string) => boolean;
+		namePlaceholder?: string;
+		statePlaceholder?: string;
+		preview?: Snippet<[boolean]>;
+		extra?: Snippet<[(key: string, event?: any) => void]>;
 	} = $props();
 
 	let entity_id = $derived(sel?.entity_id);
@@ -41,7 +55,9 @@
 	let slideBrightness = $state(sel?.slide_brightness !== false);
 	let sliderUpdates = $state(sel?.slider_updates === 'release' ? 'release' : 'continuous');
 
-	let options = $derived($entityList(''));
+	let options = $derived(
+		entityFilter ? $entityList('').filter((option) => entityFilter(option.id)) : $entityList('')
+	);
 
 	let template = $derived($templates?.[sel?.id]);
 
@@ -116,12 +132,16 @@
 	}
 </script>
 
-<ConfigModal {isOpen} bind:sel title={$lang('button')} {demo}>
+<ConfigModal {isOpen} bind:sel title={title ?? $lang('button')} {demo}>
 	{#snippet children(set)}
 		<h2>{$lang('preview')}</h2>
 
 		<div style:pointer-events="none">
-			<Button {sel} {sectionName} {displayOnly} />
+			{#if preview}
+				{@render preview(displayOnly)}
+			{:else}
+				<Button {sel} {sectionName} {displayOnly} />
+			{/if}
 		</div>
 
 		<h2>{$lang('entity')}</h2>
@@ -165,6 +185,8 @@
 			</button>
 		</div>
 
+		{@render extra?.(set)}
+
 		<h2>{$lang('name')}</h2>
 
 		<div class="icon-gallery-container">
@@ -181,6 +203,7 @@
 						class="input"
 						type="text"
 						placeholder={template?.name?.output ||
+							namePlaceholder ||
 							getName(sel, (entity_id && $states?.[entity_id]) || undefined) ||
 							$lang('name')}
 						autocomplete="off"
@@ -228,6 +251,7 @@
 						class="input"
 						type="text"
 						placeholder={template?.state?.output ||
+							statePlaceholder ||
 							(entity_id && $states?.[entity_id]?.state) ||
 							$lang('state')}
 						autocomplete="off"
