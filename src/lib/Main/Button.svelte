@@ -31,6 +31,7 @@
 		sel,
 		sectionName = undefined,
 		displayOnly = false,
+		compact = false,
 		openConfig = undefined,
 		openDetails = undefined
 	}: {
@@ -38,6 +39,8 @@
 		sel: any;
 		sectionName?: string | undefined;
 		displayOnly?: boolean;
+		/** smaller variant used for cells inside grid items */
+		compact?: boolean;
 		/** replaces ButtonConfig in edit mode, used by item types built on Button */
 		openConfig?: () => void;
 		/** replaces the domain modal when more_info is enabled */
@@ -525,25 +528,63 @@
 
 	////// templates //////
 
+	// One subscription per template key, owned by this component. Comparing
+	// against this map instead of the shared $templates store makes a remounted
+	// button (view switch, visibility) subscribe again, and lets removed keys,
+	// changed inputs and stale connections unsubscribe.
+	// eslint-disable-next-line svelte/prefer-svelte-reactivity -- bookkeeping only, must not rerun the effect
+	const subscriptions = new Map<
+		string,
+		{ input: string; entity_id: string | undefined; conn: unknown; unsubscribe?: () => void }
+	>();
+	let destroyed = false;
+
 	$effect(() => {
-		if ($config?.state === 'RUNNING' && sel?.template) {
-			// for each changed entry in template
-			Object.entries(sel?.template as Record<string, string>).forEach(([key, value]) => {
-				const compareTemplate = value === template?.[key]?.input;
-				const compareEntityId = sel?.entity_id === template?.[key]?.entity_id;
-				if (compareTemplate && compareEntityId) return;
-				renderTemplate(key, value);
-			});
+		const conn = $connection;
+		if ($config?.state !== 'RUNNING' || !conn || !sel?.id) return;
+
+		const entries = Object.entries((sel?.template ?? {}) as Record<string, string>);
+		const wanted = new Set(entries.map(([key]) => key));
+
+		for (const [key, subscription] of subscriptions) {
+			if (!wanted.has(key)) {
+				subscription.unsubscribe?.();
+				subscriptions.delete(key);
+			}
+		}
+
+		for (const [key, value] of entries) {
+			const current = subscriptions.get(key);
+			if (
+				current &&
+				current.input === value &&
+				current.entity_id === sel?.entity_id &&
+				current.conn === conn
+			)
+				continue;
+			current?.unsubscribe?.();
+			renderTemplate(key, value);
 		}
 	});
-
-	let unsubscribe: () => void;
 
 	async function renderTemplate(key: string, value: string) {
 		if (!$connection || !sel?.id) return;
 
+		// registered before awaiting, so an effect rerun meanwhile doesn't subscribe twice
+		const entry: {
+			input: string;
+			entity_id: string | undefined;
+			conn: unknown;
+			unsubscribe?: () => void;
+		} = {
+			input: value,
+			entity_id: sel?.entity_id,
+			conn: $connection
+		};
+		subscriptions.set(key, entry);
+
 		try {
-			unsubscribe = await $connection.subscribeMessage(
+			const unsubscribe = await $connection.subscribeMessage(
 				(response: { result: string } | { error: string; level: 'ERROR' | 'WARNING' }) => {
 					let data: any = {
 						input: value
@@ -572,13 +613,22 @@
 					}
 				}
 			);
+
+			if (destroyed || subscriptions.get(key) !== entry) {
+				unsubscribe();
+			} else {
+				entry.unsubscribe = unsubscribe;
+			}
 		} catch (error) {
+			if (subscriptions.get(key) === entry) subscriptions.delete(key);
 			console.error('Template error:', error);
 		}
 	}
 
 	onDestroy(() => {
-		unsubscribe?.();
+		destroyed = true;
+		for (const subscription of subscriptions.values()) subscription.unsubscribe?.();
+		subscriptions.clear();
 		if (debounceTimeout) clearTimeout(debounceTimeout);
 		clearOptimisticState();
 	});
@@ -698,13 +748,14 @@
 	bind:this={container}
 	data-state={stateOn}
 	data-display-only={isDisplayOnly}
+	data-compact={compact}
 	tabindex="-1"
 	style={!$editMode && !isDisplayOnly
 		? 'cursor: pointer;'
 		: isDisplayOnly
 			? 'cursor: default;'
 			: ''}
-	style:min-height="{$itemHeight}px"
+	style:min-height={compact ? undefined : `${$itemHeight}px`}
 	onpointerenter={handlePointer}
 	onpointerdown={handlePointer}
 	use:Ripple={{
@@ -1035,10 +1086,54 @@
 		color: var(--theme-display-only-state-color, rgba(255, 255, 255, 0.7));
 	}
 
+	/* Compact cells scale with --tile-scale set by the grid */
+	.container[data-compact='true'] {
+		--container-padding: calc(0.45rem * var(--tile-scale, 1));
+		border-radius: 0.5rem;
+	}
+
+	.container[data-compact='true'] .icon {
+		--icon-size: calc(1.75rem * var(--tile-scale, 1));
+		padding: calc(0.35rem * var(--tile-scale, 1));
+	}
+
+	.container[data-compact='true'] .name {
+		font-size: calc(0.8rem * var(--tile-scale, 1));
+	}
+
+	.container[data-compact='true'] .state {
+		font-size: calc(0.78rem * var(--tile-scale, 1));
+		margin-top: 0;
+	}
+
+	/* the grid cell is the query container; shrink and drop the state line before it clips */
+	@container plus-cell (max-height: 2.4rem) {
+		.container[data-compact='true'] {
+			--container-padding: 0.2rem;
+		}
+
+		.container[data-compact='true'] .icon {
+			--icon-size: 1.1rem;
+			padding: 0.2rem;
+		}
+
+		.container[data-compact='true'] .name {
+			font-size: 0.75rem;
+		}
+
+		.container[data-compact='true'] .state {
+			display: none;
+		}
+	}
+
 	/* Phone and Tablet (portrait) */
 	@media all and (max-width: 768px) {
 		.container {
 			width: calc(50vw - 1.45rem);
+		}
+
+		.container[data-compact='true'] {
+			width: 100%;
 		}
 	}
 </style>
